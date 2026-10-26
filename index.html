@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Larder: photo to recipe</title>
+<style>
+:root{--bg:#f4efe6;--card:#fbf8f2;--ink:#1f2a24;--mute:#6b7469;--line:#ddd5c6;--accent:#d2461f;--green:#2f5d46;--chip:#e7e0d1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a16;--card:#1c241f;--ink:#efe9dc;--mute:#97a193;--line:#2d3830;--accent:#ff7a52;--green:#8fcfa8;--chip:#26302a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a16;--card:#1c241f;--ink:#efe9dc;--mute:#97a193;--line:#2d3830;--accent:#ff7a52;--green:#8fcfa8;--chip:#26302a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100%}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 80px}
+header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid var(--ink);padding-bottom:10px}
+.logo{font:600 26px ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.02em}
+.logo i{color:var(--accent);font-style:italic}
+.tag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+h1{font:400 clamp(38px,8vw,68px)/1.02 ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.03em;margin:38px 0 12px}
+h1 em{color:var(--accent)}
+.lead{color:var(--mute);max-width:520px;margin:0 0 28px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--ink);border-radius:999px;padding:4px;max-width:440px;margin-bottom:18px}
+.tabs button{border:0;background:none;color:var(--ink);font:500 15px system-ui,-apple-system,'Segoe UI',sans-serif;padding:10px 12px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.drop{display:block;border:1.5px dashed var(--mute);border-radius:20px;background:var(--card);padding:34px 20px;text-align:center;cursor:pointer;transition:.2s}
+.drop:hover{border-color:var(--accent);transform:translateY(-1px)}
+.drop b{font:600 22px ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;display:block;margin-bottom:4px}
+.drop span{color:var(--mute);font-size:14px}
+.drop input{display:none}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:14px;border:1px solid var(--line)}
+.go{margin-top:18px;border:0;background:var(--accent);color:#fff;font:600 16px system-ui,-apple-system,'Segoe UI',sans-serif;padding:14px 26px;border-radius:999px;cursor:pointer}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.status{margin-top:22px;color:var(--mute);font-style:italic;font-family:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;font-size:20px}
+.err{color:var(--accent)}
+#out{margin-top:36px}
+.sec{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.chip{background:var(--chip);border-radius:999px;padding:5px 13px;font-size:14px}
+.chip.miss{background:none;border:1px dashed var(--accent);color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;margin-bottom:18px;animation:up .5s both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.card h2{font:600 28px/1.15 ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.02em;margin:0 0 6px}
+.meta{color:var(--mute);font-size:14px;margin-bottom:14px}
+.meta span+span::before{content:"·";margin:0 8px}
+ol{margin:12px 0 0;padding:0;list-style:none;counter-reset:s}
+ol li{counter-increment:s;position:relative;padding:10px 0 10px 46px;border-top:1px solid var(--line)}
+ol li::before{content:counter(s);position:absolute;left:0;top:8px;width:30px;height:30px;border-radius:50%;background:var(--green);color:var(--bg);display:grid;place-items:center;font:600 14px ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif}
+ul.ing{list-style:none;margin:0 0 6px;padding:0;columns:2;gap:24px}
+ul.ing li{padding:5px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+ul.ing b{font-weight:600}
+details summary{cursor:pointer;font-weight:600;color:var(--green);margin-top:12px}
+.tip{margin-top:14px;padding:12px 14px;background:var(--chip);border-radius:12px;font-size:14px}
+@media(max-width:560px){ul.ing{columns:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo">Larder<i>.</i></div><div class="tag">photo to plate</div></header>
+<h1>Show me the food.<br><em>I’ll show you how.</em></h1>
+<p class="lead">Snap your fridge and get dinner ideas with steps. Or snap a dish you love and get the full recipe.</p>
+
+<div class="tabs" role="tablist">
+<button role="tab" id="t-fridge" aria-selected="true">Fridge → Meals</button>
+<button role="tab" id="t-dish" aria-selected="false">Dish → Recipe</button>
+</div>
+
+<label class="drop" id="drop">
+<b id="dtitle">Add photos of your fridge or pantry</b>
+<span id="dsub">Tap to take a photo or choose up to 4 images</span>
+<input type="file" id="file" accept="image/*" multiple>
+</label>
+<div class="thumbs" id="thumbs"></div>
+<button class="go" id="go" disabled>Cook something up</button>
+<div class="status" id="status" hidden></div>
+<div id="out"></div>
+<p style="font-size:13px;color:var(--mute);margin-top:40px">Trouble? <a style="color:var(--green)" href="/api/ai">Test the server</a> · v4</p>
+</div>
+
+<script>
+window.addEventListener('error',e=>{try{status('Page error: '+e.message,true)}catch(_){}});
+const $=s=>document.querySelector(s);
+let mode='fridge',blobs=[];
+function h(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+function setMode(m){
+  mode=m;blobs=[];$('#thumbs').replaceChildren();$('#out').replaceChildren();$('#go').disabled=true;$('#status').hidden=true;
+  $('#t-fridge').setAttribute('aria-selected',m==='fridge');
+  $('#t-dish').setAttribute('aria-selected',m==='dish');
+  $('#file').multiple=m==='fridge';$('#file').value='';
+  $('#dtitle').textContent=m==='fridge'?'Add photos of your fridge or pantry':'Add a photo of a dish or dessert';
+  $('#dsub').textContent=m==='fridge'?'Tap to take a photo or choose up to 4 images':'Tap to take a photo or choose an image';
+  $('#go').textContent=m==='fridge'?'Cook something up':'Get the recipe';
+}
+$('#t-fridge').onclick=()=>setMode('fridge');
+$('#t-dish').onclick=()=>setMode('dish');
+
+function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const i=new Image();i.onload=()=>{URL.revokeObjectURL(u);res(i)};i.onerror=()=>rej(new Error('img'));i.src=u})}
+async function shrink(file){
+  const img=await loadImg(file);
+  const w=img.naturalWidth,h=img.naturalHeight,k=Math.min(1,900/Math.max(w,h));
+  const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  return new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error('blob')),'image/jpeg',.75));
+}
+$('#file').onchange=async e=>{
+  const list=[...e.target.files].slice(0,mode==='fridge'?4:1);
+  blobs=[];$('#thumbs').replaceChildren();
+  for(const f of list){
+    try{const b=await shrink(f);blobs.push(b);const i=new Image();i.src=URL.createObjectURL(b);i.alt='Selected photo';$('#thumbs').append(i)}catch(_){status('I couldn’t read that photo. Try another one.',true)}
+  }
+  $('#go').disabled=!blobs.length;
+};
+
+function status(msg,isErr){const s=$('#status');s.hidden=!msg;s.textContent=msg||'';s.className='status'+(isErr?' err':'')}
+
+function stepsList(steps){const o=h('ol');steps.forEach(t=>o.append(h('li',null,t)));return o}
+
+function renderFridge(d){
+  const out=$('#out');out.replaceChildren();
+  out.append(h('p','sec','I can see'));
+  const c=h('div','chips');(d.ingredients||[]).forEach(x=>c.append(h('span','chip',x)));out.append(c);
+  out.append(h('p','sec','You could make'));
+  (d.recipes||[]).forEach((r,i)=>{
+    const card=h('div','card');card.style.animationDelay=i*90+'ms';
+    card.append(h('h2',null,r.name));
+    const m=h('div','meta');[r.time,r.difficulty].filter(Boolean).forEach(t=>m.append(h('span',null,t)));card.append(m);
+    const ch=h('div','chips');ch.style.marginBottom='8px';
+    (r.uses||[]).forEach(x=>ch.append(h('span','chip',x)));
+    (r.missing||[]).forEach(x=>ch.append(h('span','chip miss','need: '+x)));
+    card.append(ch);
+    const det=h('details');det.append(h('summary',null,'Show step-by-step'));det.append(stepsList(r.steps||[]));
+    if(i===0)det.open=true;
+    card.append(det);out.append(card);
+  });
+}
+function renderDish(d){
+  const out=$('#out');out.replaceChildren();
+  const card=h('div','card');
+  card.append(h('h2',null,d.name));
+  const m=h('div','meta');[d.cuisine,d.time,d.servings&&('Serves '+d.servings)].filter(Boolean).forEach(t=>m.append(h('span',null,t)));card.append(m);
+  card.append(h('p','sec','Ingredients'));
+  const u=h('ul','ing');(d.ingredients||[]).forEach(x=>{const l=h('li');l.append(h('b',null,x.amount?x.amount+' ':''),document.createTextNode(x.item));u.append(l)});
+  card.append(u);
+  card.append(h('p','sec','Method'));card.append(stepsList(d.steps||[]));
+  if(d.tip)card.append(h('div','tip','Chef’s tip: '+d.tip));
+  out.append(card);
+}
+
+$('#go').onclick=async()=>{
+  $('#go').disabled=true;$('#out').replaceChildren();status('Looking closely…');
+  try{
+    const prompt=mode==='fridge'
+      ?'You are a friendly home chef. Look at the attached fridge/pantry photos. Identify the food items you can actually see. Then suggest 4 realistic recipes using mostly those items (assume salt, pepper, oil and water). Return ONLY JSON: {"ingredients":[string],"recipes":[{"name":string,"time":string,"difficulty":"Easy|Medium|Hard","uses":[string],"missing":[string],"steps":[string]}]}. Steps must be clear, specific and 5 to 9 per recipe. If there is no food, return {"error":"short explanation"}.'
+      :'You are a professional chef. Identify the dish or dessert in the attached photo and write a complete home recipe. Return ONLY JSON: {"name":string,"cuisine":string,"time":string,"servings":number,"ingredients":[{"amount":string,"item":string}],"steps":[string],"tip":string}. Steps must be clear and specific, with temperatures and times. If the photo shows no food, return {"error":"short explanation"}.';
+    const images=await Promise.all(blobs.map(b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(b)})));
+    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),45000);
+    const res=await fetch('/api/ai',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,images}),signal:ac.signal});clearTimeout(to);
+    if(!res.ok){let m='';try{m=(await res.json()).error}catch(_){}throw new Error(m||('Server error '+res.status+(res.status>=502?' (the server took too long)':'')))}
+    const d=await res.json();
+    if(!d||d.error){status(d&&d.error||'I couldn’t find food in that photo. Try another.',true);return}
+    status('');mode==='fridge'?renderFridge(d):renderDish(d);
+  }catch(e){
+    console.error(e);status(e&&e.name==='AbortError'?'That took too long. Try one smaller photo.':'Problem: '+((e&&e.message)||'unknown'),true);
+  }finally{$('#go').disabled=!blobs.length}
+};
+</script>
+</body>
+</html>
